@@ -1,0 +1,11 @@
+---
+- name: Enable linger for a user
+  hosts: homelan
+  become: yes
+  vars:
+    user_to_linger: j9
+  tasks:
+    - name: Enable linger for {{ user_to_linger }}
+      ansible.builtin.command:
+        cmd: loginctl enable-linger {{ user_to_linger }}
+        creates: /var/lib/systemd/linger/{{ user_to_linger }}

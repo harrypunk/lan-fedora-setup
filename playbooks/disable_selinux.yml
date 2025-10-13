@@ -1,0 +1,14 @@
+---
+- name: Disable SELinux
+  hosts: homelan
+  become: yes
+  tasks:
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+        policy: targeted
+      notify: Reboot system
+
+  handlers:
+    - name: Reboot system
+      reboot:

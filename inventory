@@ -1,0 +1,8 @@
+# This is the inventory file for the homelab.
+# It contains all the hosts that Ansible will manage.
+
+[homelan]
+# Fedora Linux servers
+linux1.lan
+linux2.lan
+linux3.lan

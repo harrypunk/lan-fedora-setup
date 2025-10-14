@@ -1,0 +1,11 @@
+---
+- name: Initiate graceful shutdown for all hosts
+  hosts: homelan
+  gather_facts: false # Skip fact gathering since the machine is about to shut down
+  become: true        # Required to execute system-level commands like shutdown
+
+  tasks:
+    - name: Execute system shutdown
+      community.general.shutdown:
+        # On Linux, macOS and OpenBSD, this is converted to minutes and rounded down. If less than 60, it is set to 0.
+        delay: 20

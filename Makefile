@@ -1,26 +1,36 @@
 .PHONY: ping \
 	docker selinux firewall syntax-check linger docker-user
 
-ping:
-	ansible homelan -m ping
+syntax-check:
+	ansible-playbook --syntax-check playbooks/*.yml
 
-# ANSIBLE_OPTS can be overridden when calling make
 ANSIBLE_OPTS ?= --ask-become-pass
 
+ENV ?= stage
+INVENTORIES := -i stage.ini
+ifeq ($(ENV), prod)
+	INVENTORIES := -i production.ini
+else ifeq ($(ENV), all)
+	INVENTORIES += -i production.ini
+endif
+
+ping:
+	ansible homelan -m ping $(INVENTORIES)
+
 docker:
-	ansible-playbook $(ANSIBLE_OPTS) playbooks/install_docker.yml
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/install_docker.yml $(INVENTORIES)
 
 selinux:
-	ansible-playbook $(ANSIBLE_OPTS) playbooks/disable_selinux.yml
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/disable_selinux.yml $(INVENTORIES)
 
 firewall:
-	ansible-playbook $(ANSIBLE_OPTS) playbooks/disable_firewalld.yml
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/disable_firewalld.yml $(INVENTORIES)
 
 linger:
-	ansible-playbook $(ANSIBLE_OPTS) playbooks/enable_linger.yml
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/enable_linger.yml $(INVENTORIES)
 
 docker-user:
-	ansible-playbook $(ANSIBLE_OPTS) playbooks/docker_user.yml
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/docker_user.yml $(INVENTORIES)
 
-syntax-check:
-	ansible-playbook $(ANSIBLE_OPTS) --syntax-check playbooks/*.yml
+shutdown:
+	ansible-playbook $(ANSIBLE_OPTS) playbooks/shutdown.yml $(INVENTORIES)

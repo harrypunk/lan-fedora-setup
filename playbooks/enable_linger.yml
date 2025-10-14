@@ -1,9 +1,9 @@
 ---
 - name: Enable linger for a user
   hosts: homelan
-  become: yes
+  become: true
   vars:
-    user_to_linger: j9
+    user_to_linger: op
   tasks:
     - name: Enable linger for {{ user_to_linger }}
       ansible.builtin.command:

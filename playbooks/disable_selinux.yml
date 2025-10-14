@@ -1,7 +1,7 @@
 ---
 - name: Disable SELinux
   hosts: homelan
-  become: yes
+  become: true
   tasks:
     - name: Disable SELinux
       ansible.posix.selinux:

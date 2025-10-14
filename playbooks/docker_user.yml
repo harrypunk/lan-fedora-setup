@@ -1,0 +1,16 @@
+---
+- name: Configure Docker user permissions
+  hosts: homelan
+  become: true
+  any_errors_fatal: true
+  tasks:
+    - name: Create docker group
+      group:
+        name: docker
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true

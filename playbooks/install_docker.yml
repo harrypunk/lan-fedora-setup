@@ -1,0 +1,31 @@
+---
+- name: Install and enable Docker
+  hosts: homelan
+  become: true
+  any_errors_fatal: true
+  vars:
+    docker_bins_src: /tmp/docker
+  tasks:
+    - name: Copy Docker binaries
+      copy:
+        src: "{{ item }}"
+        dest: /usr/bin/
+        mode: '0755'
+      with_fileglob:
+        - "{{ docker_bins_src }}/*"
+
+    - name: Copy Docker service file
+      template:
+        src: docker.service.j2
+        dest: /etc/systemd/system/docker.service
+        mode: '0644'
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: true
+        state: started

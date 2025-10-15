@@ -1,31 +1,45 @@
 ---
-- name: Install and enable Docker
+- name: Install docker rpms
   hosts: homelan
-  become: true
   any_errors_fatal: true
   vars:
-    docker_bins_src: /tmp/docker
+    docker_rpms_src: /tmp/docker-rpms
+    docker_rpms_dest: "/home/{{ ansible_user }}/docker-rpms"
   tasks:
-    - name: Copy Docker binaries
-      copy:
-        src: "{{ item }}"
-        dest: /usr/bin/
-        mode: '0755'
-      with_fileglob:
-        - "{{ docker_bins_src }}/*"
-
-    - name: Copy Docker service file
-      template:
-        src: docker.service.j2
-        dest: /etc/systemd/system/docker.service
+    - name: Copy Docker RPMs to target hosts
+      ansible.builtin.copy:
+        src: "{{ docker_rpms_src }}/"
+        dest: "{{ docker_rpms_dest }}/"
         mode: '0644'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      register: rpm_copy_result
 
-    - name: Reload systemd
-      systemd:
-        daemon_reload: true
+    # with_fileglob works on control machine
+    - name: Find all RPM files in destination folder
+      ansible.builtin.find:
+        paths: "{{ docker_rpms_dest }}"
+        patterns: "*.rpm"
+      register: rpm_files
+
+    - name: Debug log found RPM files
+      ansible.builtin.debug:
+        msg: "{{ item.path }}"
+      loop: "{{ rpm_files.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+
+    - name: Install Docker from RPM files
+      become: true
+      ansible.builtin.dnf:
+        name: "{{ rpm_files.files | map(attribute='path') | list }}"
+        state: present
+        disable_gpg_check: true
+      when: rpm_files.matched > 0
 
     - name: Enable and start Docker service
-      systemd:
+      become: true
+      ansible.builtin.systemd:
         name: docker
         enabled: true
         state: started
